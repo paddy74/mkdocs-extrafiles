@@ -1,8 +1,12 @@
 # mkdocs-extrafiles
 
+[![PyPI][pypi-img]][pypi-lnk]
 [![License][license-img]][license-lnk]
+[![Tests][tests-img]][tests-lnk]
+[![Code Style][codestyle-img]][codestyle-lnk]
+[![Coverage Status][codecov-img]][codecov-lnk]
 
-A lightweight [MkDocs](https://www.mkdocs.org/) plugin that allows you to add files from outside your `docs_dir` to your MkDocs site build.
+`mkdocs-extrafiles` is a lightweight [MkDocs](https://www.mkdocs.org/) plugin that allows you to add files and directories from outside MkDocs document directory (`docs_dir`) to your MkDocs site build.
 
 ## Features
 
@@ -127,5 +131,13 @@ Questions or issues? Please open an issue on the repository's issue tracker.
 
 <!-- Badges -->
 
+[pypi-lnk]: https://pypi.org/p/mkdocs-extrafiles
+[pypi-img]: https://img.shields.io/pypi/v/mkdocs-extrafiles.svg
+[tests-lnk]: https://github.com/paddy74/mkdocs-extrafiles/actions/workflows/ci.yaml
+[tests-img]: https://img.shields.io/github/actions/workflow/status/paddy74/mkdocs-extrafiles/ci.yaml?logo=github&label=tests&branch=main
+[codecov-lnk]: https://codecov.io/github/paddy74/mkdocs-extrafiles
+[codecov-img]: https://codecov.io/github/paddy74/mkdocs-extrafiles/graph/badge.svg?token=2J3G1C9BCX
+[codestyle-lnk]: https://docs.astral.sh/ruff
+[codestyle-img]: https://img.shields.io/badge/code%20style-ruff-000000.svg
 [license-lnk]: ./LICENSE
 [license-img]: https://img.shields.io/pypi/l/mkdocs-extrafiles?color=light-green&logo=gplv3&logoColor=white
