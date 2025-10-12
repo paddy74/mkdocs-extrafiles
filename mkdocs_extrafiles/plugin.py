@@ -36,7 +36,8 @@ class PluginConfig(Config):
 
 
 class ExtraFilesPlugin(BasePlugin[PluginConfig]):
-    """An `mkdocs` plugin.
+    """
+    An `mkdocs` plugin.
 
     This plugin defines the following event hooks:
 
@@ -71,12 +72,36 @@ class ExtraFilesPlugin(BasePlugin[PluginConfig]):
 
     @property
     def plugin_enabled(self) -> bool:
-        """Tell if the plugin is enabled or not.
+        """
+        Tell if the plugin is enabled or not.
 
         :return: Whether the plugin is enabled.
         :rtype: bool
         """
         return self.config.enabled
+
+    def _glob_base_dir(self, pattern: str) -> Path:
+        """
+        Determine the base directory for a glob so relative paths are preserved.
+
+        The base is derived from the leading non-glob path segments. For relative patterns it is anchored to the plugin's config directory. For absolute patterns the resolved absolute segments are used directly.
+        """
+        path_obj = Path(pattern)
+        base_parts: list[str] = []
+        for part in path_obj.parts:
+            if any(ch in part for ch in ("*", "?", "[")):
+                break
+            base_parts.append(part)
+
+        if path_obj.is_absolute():
+            if base_parts:
+                base_path = Path(*base_parts)
+            else:
+                base_path = Path(path_obj.anchor or path_obj.root or "/")
+            return base_path.resolve()
+
+        base_path = self.config_dir.joinpath(*base_parts)
+        return base_path.resolve()
 
     def _expand_items(self):
         """
@@ -87,22 +112,32 @@ class ExtraFilesPlugin(BasePlugin[PluginConfig]):
         for item in self.config["files"]:
             src = item["src"]
             dest = item["dest"]
+
             if Path(dest).is_absolute():
                 raise ValueError(f"extrafiles: dest must be relative, got {dest!r}")
+
             if any(ch in src for ch in ["*", "?", "["]):
                 # glob mode: dest must be a directory (end with '/')
                 if not dest.endswith(("/", "\\")):
                     raise ValueError(
                         f"When using glob in src='{src}', dest must be a directory (end with '/')."
                     )
+
                 pattern = src
                 if not Path(pattern).is_absolute():
                     pattern = str((self.config_dir / pattern).resolve())
+                base_dir = self._glob_base_dir(src)
                 matched = [Path(p).resolve() for p in glob(pattern, recursive=True)]
                 for s in matched:
                     if s.is_file():
-                        rel_name = s.name
-                        dest_uri = PurePosixPath(dest.rstrip("/\\")) / rel_name
+                        try:
+                            rel_path = s.relative_to(base_dir)
+                        except ValueError:
+                            rel_path = Path(s.name)
+                        if rel_path == Path("."):
+                            rel_path = Path(s.name)
+                        relative_posix = PurePosixPath(*rel_path.parts)
+                        dest_uri = PurePosixPath(dest.rstrip("/\\")) / relative_posix
                         yield s, dest_uri.as_posix()
             else:
                 s = Path(src)

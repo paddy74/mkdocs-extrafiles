@@ -144,7 +144,24 @@ def test_expand_items_expands_glob_sources(tmp_path: Path) -> None:
     )
     items = list(plugin._expand_items())
     resolved = {dest for _, dest in items}
-    assert resolved == {"external/first.txt", "external/second.txt"}
+    assert resolved == {"external/first.txt", "external/nested/second.txt"}
+
+
+def test_expand_items_preserves_relative_structure(tmp_path: Path) -> None:
+    """Files with the same name under different folders should maintain structure."""
+    data_dir = tmp_path / "assets"
+    nested_dir = data_dir / "nested"
+    nested_dir.mkdir(parents=True)
+    (data_dir / "shared.txt").write_text("root")
+    (nested_dir / "shared.txt").write_text("child")
+    plugin = make_plugin(
+        tmp_path, files=[{"src": "assets/**/*.txt", "dest": "external/"}]
+    )
+    dest_map = {dest: src for src, dest in plugin._expand_items()}
+    assert dest_map["external/shared.txt"] == (data_dir / "shared.txt").resolve()
+    assert (
+        dest_map["external/nested/shared.txt"] == (nested_dir / "shared.txt").resolve()
+    )
 
 
 def test_on_files_raises_when_source_missing(tmp_path: Path) -> None:
