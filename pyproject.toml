@@ -37,6 +37,22 @@ dev = [
     "ruff>=0.12.11",
 ]
 
+[tool.semantic_release]
+branch = "main"
+build_command = """
+    python -m pip install -e '.[build]'
+    uv lock --upgrade-package "$PACKAGE_NAME"
+    git add uv.lock
+    uv build
+"""
+version_variables = ["usajobsapi/_version.py:__version__"]
+commit_message = "chore: release v{version}"
+allow_zero_version = true
+major_on_zero = true
+
+[tool.semantic_release.changelog.commit_parser_options]
+patch_tags = ["fix", "build", "perf"]
+
 [tool.ruff]
 line-length = 88
 target-version = "py311"

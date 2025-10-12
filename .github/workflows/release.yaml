@@ -1,0 +1,65 @@
+name: build
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+on:
+  pull_request:
+    branches: [main] # PR verification only (base=main)
+  push:
+    branches: [main] # releases on merges to main
+
+jobs:
+  # Build job for PR verification
+  build:
+    if: github.event_name == 'pull_request'
+    name: Build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: ./.github/actions/python-init
+      - name: Build sdist and wheel
+        run: uv build
+      - uses: ./.github/actions/python-post
+
+  # Publish releases on changes to main
+  release:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'paddy74/mkdocs_extrafiles'
+    name: Create a Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # tags + GitHub Release
+      id-token: write # PyPI Trusted Publishing
+    environment:
+      name: pypi
+      url: https://pypi.org/p/mkdocs_extrafiles
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Python Semantic Release
+        id: release
+        uses: python-semantic-release/python-semantic-release@v10
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish pkg to GitHub Releases
+        uses: python-semantic-release/publish-action@v10
+        if: steps.release.outputs.released == 'true'
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish pkg to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        if: steps.release.outputs.released == 'true'
+        with:
+          packages-dir: dist
+          skip-existing: true
