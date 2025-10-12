@@ -33,6 +33,7 @@ class PluginConfig(Config):
     """
 
     files = opt.Type(list, default=[])
+    enabled = opt.Type(bool, default=True)
 
 
 class ExtraFilesPlugin(BasePlugin[PluginConfig]):
@@ -55,7 +56,7 @@ class ExtraFilesPlugin(BasePlugin[PluginConfig]):
         Hook for the [`on_config` event](https://www.mkdocs.org/user-guide/plugins/#on_config).
         """
         if not self.plugin_enabled:
-            logger.debug("Plugin is not enabled. Skipping.")
+            logger.debug("extrafiles: plugin disabled, skipping.")
             return config
 
         docs_dir = Path(config["docs_dir"]).resolve()
@@ -109,6 +110,10 @@ class ExtraFilesPlugin(BasePlugin[PluginConfig]):
           - single file -> file
           - glob -> directory (dest must end with '/')
         """
+        if not self.plugin_enabled:
+            logger.debug("extrafiles: plugin disabled, skipping item expansion.")
+            return
+
         for item in self.config["files"]:
             src = item["src"]
             dest = item["dest"]
@@ -148,6 +153,10 @@ class ExtraFilesPlugin(BasePlugin[PluginConfig]):
                 yield s, dest_uri
 
     def on_files(self, files: Files, *, config: MkDocsConfig) -> Files:
+        if not self.plugin_enabled:
+            logger.debug("extrafiles: plugin disabled, skipping file staging.")
+            return files
+
         staged = 0
         for src, dest_uri in self._expand_items():
             if not src.exists():
@@ -177,6 +186,12 @@ class ExtraFilesPlugin(BasePlugin[PluginConfig]):
         builder: Callable[..., Any],
     ) -> LiveReloadServer | None:
         """Make MkDocs monitor the source files when serving auto-reload."""
+        if not self.plugin_enabled:
+            logger.debug(
+                "extrafiles: plugin disabled, skipping live reload registration."
+            )
+            return server
+
         try:
             for src, _ in self._expand_items():
                 if src.exists():

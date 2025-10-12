@@ -70,6 +70,12 @@ def test_plugin_enabled_property(tmp_path: Path) -> None:
     assert plugin_disabled.plugin_enabled is False
 
 
+def test_expand_items_returns_nothing_when_disabled(tmp_path: Path) -> None:
+    """Disabled plugin must not yield items."""
+    plugin = make_plugin(tmp_path, files=[{"src": "notes.txt", "dest": "external/notes.txt"}], enabled=False)
+    assert list(plugin._expand_items() or []) == []
+
+
 def test_on_config_returns_early_when_disabled(tmp_path: Path) -> None:
     """Verify on_config short-circuits when the plugin is disabled."""
     plugin = ExtraFilesPlugin()
@@ -196,6 +202,17 @@ def test_on_files_replaces_existing_entries(tmp_path: Path) -> None:
     assert generated.abs_src_path == str(src.resolve())
 
 
+def test_on_files_noop_when_disabled(tmp_path: Path) -> None:
+    """Disabled plugin must leave the file list untouched."""
+    plugin = ExtraFilesPlugin()
+    plugin.config = DummyPluginConfig(enabled=False)
+    files = Files([])
+    config = DummyMkDocsBuildConfig(site_dir=tmp_path / "site")
+    result = plugin.on_files(files, config=config)
+    assert result is files
+    assert list(result) == []
+
+
 def test_on_serve_registers_existing_sources(tmp_path: Path) -> None:
     """Existing source files should be registered with the live reload server."""
     src = tmp_path / "example.txt"
@@ -245,6 +262,22 @@ def test_on_serve_swallows_internal_errors(tmp_path: Path) -> None:
     class DummyServer:
         """Capture watch registrations from the plugin."""
 
+        def watch(self, path: str) -> None:
+            server_calls.append(path)
+
+    server = DummyServer()
+    config = DummyMkDocsBuildConfig(site_dir=tmp_path / "site")
+    plugin.on_serve(server, config=config, builder=lambda: None)
+    assert server_calls == []
+
+
+def test_on_serve_noop_when_disabled(tmp_path: Path) -> None:
+    """Disabled plugin must not register live reload watchers."""
+    plugin = ExtraFilesPlugin()
+    plugin.config = DummyPluginConfig(enabled=False)
+    server_calls: list[str] = []
+
+    class DummyServer:
         def watch(self, path: str) -> None:
             server_calls.append(path)
 
