@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: ["main"]
+
+jobs:
+  changes:
+    name: Detect relevant file changes
+    runs-on: ubuntu-latest
+    outputs:
+      test: ${{ steps.filter.outputs.test }}
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            test:
+              - 'mkdocs_extrafiles/**'
+              - 'tests/**'
+              - 'pyproject.toml'
+              - '.github/workflows/ci.yaml'
+
+  lint:
+    name: Lint Python
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/python-init
+      - name: Run pre-commit
+        run: uv run pre-commit run --all-files --hook-stage manual
+      - uses: ./.github/actions/python-post
+
+  test:
+    needs: changes
+    if: needs.changes.outputs.test == 'true'
+    name: Test Python
+    runs-on: ubuntu-latest
+    env:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: ./.github/actions/python-init
+      - name: Run tests
+        run: uv run pytest --cov=mkdocs_extrafiles --cov-report=term-missing --cov-report=xml --junitxml=junit.xml tests
+      - uses: ./.github/actions/python-post
+
+      - name: Warn if CODECOV_TOKEN is missing
+        if: ${{ !cancelled() && env.CODECOV_TOKEN == '' }}
+        run: printf "%s\n" "::warning::CODECOV_TOKEN secret not set; skipping Codecov uploads."
+
+      - name: Upload coverage to Codecov
+        if: ${{ !cancelled() && env.CODECOV_TOKEN != '' }}
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ env.CODECOV_TOKEN }}
+        env:
+          CODECOV_STATUS: "project=default:threshold=80 patch=default:threshold=80"
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() && env.CODECOV_TOKEN != '' }}
+        uses: codecov/test-results-action@v1
+        with:
+          token: ${{ env.CODECOV_TOKEN }}

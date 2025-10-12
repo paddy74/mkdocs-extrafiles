@@ -1,0 +1,127 @@
+name: Publish docs to GitHub Pages
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  push:
+    # on change to watched file(s)
+    branches: [main]
+    paths:
+      - mkdocs/**
+      - mkdocs_extrafiles/**/*.py
+      - README.md
+      - CHANGELOG.md
+      - LICENSE
+      - CODE_OF_CONDUCT.md
+      - SECURITY.md
+  pull_request:
+    branches: [main] # PR verification only (base=main)
+  release:
+    types:
+      - published
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Branch, tag, or SHA to deploy"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  # Build job for PR verification
+  build:
+    if: github.event_name == 'pull_request'
+    name: Build docs
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/python-init
+
+      - name: Build MkDocs site
+        run: uv run mkdocs build -f mkdocs/mkdocs.yaml
+
+      - uses: ./.github/actions/python-post
+
+  publish:
+    # on release, push to main, or manual dispatch
+    if: >-
+      github.repository == 'paddy74/mkdocs_extrafiles' &&
+      (
+        (
+          github.event_name == 'release' &&
+          github.event.release.prerelease == false &&
+          github.event.release.draft == false
+        ) ||
+        (
+          github.event_name == 'push' &&
+          github.ref == 'refs/heads/main'
+        ) ||
+        github.event_name == 'workflow_dispatch'
+      )
+    name: Publish docs
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy-pages.outputs.page_url }}
+
+    steps:
+      - name: Check out release tag
+        if: github.event_name == 'release'
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.release.tag_name }}
+
+      - name: Check out branch
+        if: github.event_name == 'push'
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Resolve dispatch ref
+        if: github.event_name == 'workflow_dispatch'
+        id: dispatch-ref
+        run: |
+          ref="$DISPATCH_REF"
+          if [ -z "$ref" ]; then
+            if [ -n "$GITHUB_REF" ]; then
+              ref="$GITHUB_REF"
+            else
+              ref="$GITHUB_SHA"
+            fi
+          fi
+          echo "ref=$ref" >> "$GITHUB_OUTPUT"
+        env:
+          DISPATCH_REF: ${{ github.event.inputs.ref }}
+      - name: Check out dispatch ref
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          ref: ${{ steps.dispatch-ref.outputs.ref }}
+
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v4
+
+      - uses: ./.github/actions/python-init
+      - name: Build static site
+        run: uv run mkdocs build -f mkdocs/mkdocs.yaml
+      - uses: ./.github/actions/python-post
+
+      - name: Upload site artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - name: Deploy to GitHub Pages
+        id: deploy-pages
+        uses: actions/deploy-pages@v4

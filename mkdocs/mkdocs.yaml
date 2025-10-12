@@ -1,0 +1,58 @@
+site_name: mkdocs_extrafiles
+site_url: https://paddy74.github.io/mkdocs_extrafiles/
+site_description: Project documentation for mkdocs_extrafiles
+
+site_dir: ../site
+
+repo_url: https://github.com/paddy74/mkdocs_extrafiles/
+edit_uri: blob/main/docs/
+
+theme:
+  name: readthedocs
+  locale: en
+  highlightjs: true
+
+nav:
+  - Home: index.md
+  - Reference: ref/
+  - About:
+      - Changelog: about/changelog.md
+      - License: about/license.md
+      - Code of Conduct: about/conduct.md
+      - Security Policy: about/security.md
+
+plugins:
+  - search
+  - gen-files:
+      scripts:
+        - gen_ref_pages.py
+  - literate-nav:
+      nav_file: NAV_REF.md
+  - section-index
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: sphinx
+  - extrafiles:
+      files:
+        - src: ../README.md
+          dest: index.md
+        - src: ../CHANGELOG.md
+          dest: about/changelog.md
+        - src: ../LICENSE
+          dest: about/license.md
+        - src: ../CODE_OF_CONDUCT.md
+          dest: about/conduct.md
+        - src: ../SECURITY.md
+          dest: about/security.md
+
+markdown_extensions:
+  - toc:
+      baselevel: 2
+
+hooks:
+  - hooks.py
+
+watch:
+  - ../mkdocs_extrafiles/_version.py

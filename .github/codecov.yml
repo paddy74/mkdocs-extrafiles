@@ -1,7 +1,7 @@
 codecov:
   notify:
     after_n_builds: 3
-  require_ci_to_pass: yes
+  require_ci_to_pass: true
 
 coverage:
   range: "70...100"

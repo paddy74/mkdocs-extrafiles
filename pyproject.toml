@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "mkdocs-extrafiles"
 description = "A plugin for MkDocs plugin that allows you to add files from outside your `docs_dir`."
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 keywords = ["mkdocs", "mkdocs-plugin"]
 license = {file = "LICENSE"}
 dependencies = ["mkdocs>=1.6.1"]
@@ -21,20 +21,68 @@ Changelog = "https://paddy74.github.io/mkdocs-extrafiles/about/changelog/"
 Documentation = "https://paddy74.github.io/mkdocs-extrafiles/"
 Source = "https://github.com/paddy74/mkdocs-extrafiles/"
 
+[tool.uv.sources]
+mkdocs_extrafiles = { path = "./"}
+
 [tool.hatch.version]
 path = "mkdocs_extrafiles/_version.py"
 [tool.hatch.build.targets.wheel]
-packages = ["mkdocs_externalfiels"]
+packages = ["mkdocs_extrafiles"]
 
 [project.entry-points."mkdocs.plugins"]
-external-files = "mkdocs_extrafiles:extrafilesPlugin"
+extrafiles = "mkdocs_extrafiles:ExtraFilesPlugin"
 
 [dependency-groups]
 dev = [
     "pre-commit>=4.3.0",
+    "pytest>=8.4.2",
+    "pytest-cov>=7.0.0",
     "ruff>=0.12.11",
 ]
+docs = [
+    "mkdocs>=1.6.1",
+    "mkdocs-gen-files>=0.5.0",
+    "mkdocs-literate-nav>=0.6.2",
+    "mkdocs-section-index>=0.3.10",
+    "mkdocstrings[python]>=0.30.1",
+]
+
+[tool.semantic_release]
+branch = "main"
+build_command = """
+    python -m pip install -e '.[build]'
+    uv lock --upgrade-package "$PACKAGE_NAME"
+    git add uv.lock
+    uv build
+"""
+version_variables = ["mkdocs_extrafiles/_version.py:__version__"]
+commit_message = "chore: release v{version}"
+allow_zero_version = true
+major_on_zero = true
+
+[tool.semantic_release.changelog.commit_parser_options]
+patch_tags = ["fix", "build", "perf"]
 
 [tool.ruff]
 line-length = 88
 target-version = "py311"
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
+
+[tool.coverage.run]
+branch = true
+source = ["mkdocs_extrafiles"]
+relative_files = true
+
+[tool.coverage.paths]
+source = [
+    "mkdocs_extrafiles",
+    "*/site-packages/mkdocs_extrafiles",
+]
+
+[tool.coverage.report]
+fail_under = 80
+show_missing = true
+skip_covered = true
