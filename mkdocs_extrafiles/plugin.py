@@ -12,6 +12,8 @@ from mkdocs.structure.files import File, Files
 
 logger = logging.getLogger(__name__)
 
+_GLOB_CHARS = ("*", "?", "[")  # glob detection
+
 
 class PluginConfig(Config):
     """
@@ -114,6 +116,8 @@ class ExtraFilesPlugin(BasePlugin[PluginConfig]):
             logger.debug("extrafiles: plugin disabled, skipping item expansion.")
             return
 
+        config_dir = self.config_dir
+
         for item in self.config["files"]:
             src = item["src"]
             dest = item["dest"]
@@ -121,19 +125,23 @@ class ExtraFilesPlugin(BasePlugin[PluginConfig]):
             if Path(dest).is_absolute():
                 raise ValueError(f"extrafiles: dest must be relative, got {dest!r}")
 
-            if any(ch in src for ch in ["*", "?", "["]):
+            if any(ch in src for ch in _GLOB_CHARS):
                 # glob mode: dest must be a directory (end with '/')
                 if not dest.endswith(("/", "\\")):
                     raise ValueError(
                         f"When using glob in src='{src}', dest must be a directory (end with '/')."
                     )
 
-                pattern = src
-                if not Path(pattern).is_absolute():
-                    pattern = str((self.config_dir / pattern).resolve())
+                pattern_path = Path(src)
+                if pattern_path.is_absolute():
+                    pattern = str(pattern_path)
+                else:
+                    pattern = str((config_dir / pattern_path).resolve())
+
+                dest_root = PurePosixPath(dest.rstrip("/\\"))
                 base_dir = self._glob_base_dir(src)
-                matched = [Path(p).resolve() for p in glob(pattern, recursive=True)]
-                for s in matched:
+                for match in glob(pattern, recursive=True):
+                    s = Path(match).resolve()
                     if s.is_file():
                         try:
                             rel_path = s.relative_to(base_dir)
@@ -142,12 +150,12 @@ class ExtraFilesPlugin(BasePlugin[PluginConfig]):
                         if rel_path == Path("."):
                             rel_path = Path(s.name)
                         relative_posix = PurePosixPath(*rel_path.parts)
-                        dest_uri = PurePosixPath(dest.rstrip("/\\")) / relative_posix
+                        dest_uri = dest_root / relative_posix
                         yield s, dest_uri.as_posix()
             else:
                 s = Path(src)
                 if not s.is_absolute():
-                    s = self.config_dir / s
+                    s = config_dir / s
                 s = s.resolve()
                 dest_uri = PurePosixPath(dest.replace("\\", "/")).as_posix()
                 yield s, dest_uri
