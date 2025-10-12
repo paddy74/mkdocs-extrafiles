@@ -237,7 +237,7 @@ def test_on_serve_skips_missing_sources(
     )
     server = DummyServer()
     plugin.on_serve(server, config=build_config, builder=lambda: None)
-    assert server.calls == []
+    assert server.calls == [str(tmp_path)]
 
 
 def test_on_serve_swallows_internal_errors(

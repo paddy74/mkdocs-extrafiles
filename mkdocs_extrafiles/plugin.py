@@ -160,6 +160,39 @@ class ExtraFilesPlugin(BasePlugin[PluginConfig]):
                 dest_uri = PurePosixPath(dest.replace("\\", "/")).as_posix()
                 yield s, dest_uri
 
+    def _iter_watch_paths(self) -> set[Path]:
+        """
+        Collect paths to monitor for changes while serving with auto-resolve, so that newly added sources are watched witout requiring a restart.
+        """
+        if not self.plugin_enabled:
+            return set()
+
+        watch_paths: set[Path] = set()
+        for item in self.config["files"]:
+            src = item["src"]
+
+            candidate = Path(src)
+            if any(ch in src for ch in _GLOB_CHARS):
+                watch_paths.add(self._glob_base_dir(src))
+            else:
+                if not candidate.is_absolute():
+                    candidate = self.config_dir / candidate
+                watch_paths.add(candidate.resolve())
+
+        return watch_paths
+
+    @staticmethod
+    def _nearest_existing_path(path: Path) -> Path | None:
+        """
+        Return the path if it exists, otherwise return the nearest existing parent.
+
+        This ensures directories are watched even if the given path does not yet exist.
+        """
+        for p in (path, *path.parents):
+            if p.exists():
+                return p.resolve()
+        return None
+
     def on_files(self, files: Files, *, config: MkDocsConfig) -> Files:
         if not self.plugin_enabled:
             logger.debug("extrafiles: plugin disabled, skipping file staging.")
@@ -201,9 +234,23 @@ class ExtraFilesPlugin(BasePlugin[PluginConfig]):
             return server
 
         try:
+            watched: set[Path] = set()
+
+            for candidate in self._iter_watch_paths():
+                watch_path = self._nearest_existing_path(candidate)
+                if watch_path is None:
+                    continue
+                if watch_path not in watched:
+                    server.watch(str(watch_path))
+                    watched.add(watch_path)
+
             for src, _ in self._expand_items():
                 if src.exists():
-                    server.watch(str(src))
+                    resolved = src.resolve()
+                    if resolved not in watched:
+                        server.watch(str(resolved))
+                        watched.add(resolved)
         except Exception:
             pass
+
         return server
