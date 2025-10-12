@@ -87,6 +87,24 @@ uv run ruff check
 uv run ruff format
 ```
 
+### Key Development Principles
+
+- Maintain 100% passing tests, at least 80% test coverage, formatting, and linting before opening a pull request.
+- Update docstrings alongside code changes to keep the generated reference accurate.
+
+### Document Generation
+
+Documentation is generated using [MkDocs](https://www.mkdocs.org/). The technical reference surfaces the reStructuredText style docstrings from the package's source code.
+
+```bash
+uv sync --group docs
+
+# Run the development server
+uv run mkdocs serve -f mkdocs/mkdocs.yaml
+# Build the static site
+uv run mkdocs build -f mkdocs/mkdocs.yaml
+```
+
 ## Contributing
 
 Contributions are welcome! To get started:
