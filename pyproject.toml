@@ -21,9 +21,6 @@ Changelog = "https://paddy74.github.io/mkdocs-extrafiles/about/changelog/"
 Documentation = "https://paddy74.github.io/mkdocs-extrafiles/"
 Source = "https://github.com/paddy74/mkdocs-extrafiles/"
 
-[tool.uv.sources]
-mkdocs_extrafiles = { path = "./"}
-
 [tool.hatch.version]
 path = "mkdocs_extrafiles/_version.py"
 [tool.hatch.build.targets.wheel]

@@ -126,7 +126,7 @@ For major changes, open an issue first to discuss your proposal.
 
 ## License
 
-Distributed under the [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.en.html). See [LICENSE](mkdocs_extrafiles/LICENSE) for details.
+Distributed under the [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.en.html). See [LICENSE](LICENSE) for details.
 
 ## Contact
 
