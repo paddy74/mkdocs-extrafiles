@@ -50,7 +50,7 @@ jobs:
   publish:
     # on release, push to main, or manual dispatch
     if: >-
-      github.repository == 'paddy74/mkdocs_extrafiles' &&
+      github.repository == 'paddy74/mkdocs-extrafiles' &&
       (
         (
           github.event_name == 'release' &&

@@ -1,10 +1,10 @@
-site_name: mkdocs_extrafiles
-site_url: https://paddy74.github.io/mkdocs_extrafiles/
-site_description: Project documentation for mkdocs_extrafiles
+site_name: mkdocs-extrafiles
+site_url: https://paddy74.github.io/mkdocs-extrafiles/
+site_description: Project documentation for mkdocs-extrafiles
 
 site_dir: ../site
 
-repo_url: https://github.com/paddy74/mkdocs_extrafiles/
+repo_url: https://github.com/paddy74/mkdocs-extrafiles/
 edit_uri: blob/main/docs/
 
 theme:

@@ -30,7 +30,7 @@ jobs:
 
   # Publish releases on changes to main
   release:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'paddy74/mkdocs_extrafiles'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'paddy74/mkdocs-extrafiles'
     name: Create a Release
     runs-on: ubuntu-latest
     permissions:
@@ -38,7 +38,7 @@ jobs:
       id-token: write # PyPI Trusted Publishing
     environment:
       name: pypi
-      url: https://pypi.org/p/mkdocs_extrafiles
+      url: https://pypi.org/p/mkdocs-extrafiles
 
     steps:
       - uses: actions/checkout@v5

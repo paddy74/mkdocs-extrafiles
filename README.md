@@ -40,8 +40,9 @@ pip install .
 ## Quickstart
 
 - `src` accepts absolute paths or paths relative to the MkDocs config file.
-- Glob patterns (`*`, `?`, `[]`) require `dest` to end with `/` to indicate a directory target.
 - `dest` accepts relative paths to the `docs_dir`; during a build they are created in `site_dir`.
+
+Glob patterns (`*`, `?`, `[]`) require `dest` to end with `/` to indicate a directory target.
 
 ### Configuration
 
@@ -52,10 +53,12 @@ plugins:
   - search
   - extrafiles:
       files:
-        - src: ../README.md
-          dest: extras/README.md
-        - src: ../assets/**
-          dest: extras/assets/
+        - src: README.md # file
+          dest: external/README.md
+        - src: LICENSE # file -> rename/relocate
+          dest: external/LICENSE.txt
+        - src: assets/** # glob (copies all matches)
+          dest: external/assets/ # must end with '/' to indicate a directory
 ```
 
 ### Behavior
@@ -66,7 +69,7 @@ plugins:
 
 ## Troubleshooting
 
-If you are using [`mkdocs-gen-files`](https://github.com/oprypin/mkdocs-gen-files) then you _must_ place `mkdocs-extrafiles` after `mkdocs-gen-files` in your plugin settings.
+If you are using [`mkdocs-gen-files`](https://github.com/oprypin/mkdocs-gen-files) then you _must_ place `extrafiles` after `mkdocs-gen-files` in your plugin settings.
 
 ```yaml
 plugins:
