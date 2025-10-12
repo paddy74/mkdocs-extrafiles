@@ -24,7 +24,7 @@ Source = "https://github.com/paddy74/mkdocs-extrafiles/"
 [tool.hatch.version]
 path = "mkdocs_extrafiles/_version.py"
 [tool.hatch.build.targets.wheel]
-packages = ["mkdocs_externalfiels"]
+packages = ["mkdocs_extrafiles"]
 
 [project.entry-points."mkdocs.plugins"]
 extrafiles = "mkdocs_extrafiles:ExtraFilesPlugin"
@@ -45,7 +45,7 @@ build_command = """
     git add uv.lock
     uv build
 """
-version_variables = ["usajobsapi/_version.py:__version__"]
+version_variables = ["mkdocs_extrafiles/_version.py:__version__"]
 commit_message = "chore: release v{version}"
 allow_zero_version = true
 major_on_zero = true
@@ -63,13 +63,13 @@ testpaths = ["tests"]
 
 [tool.coverage.run]
 branch = true
-source = ["usajobsapi"]
+source = ["mkdocs_extrafiles"]
 relative_files = true
 
 [tool.coverage.paths]
 source = [
-    "usajobsapi",
-    "*/site-packages/usajobsapi",
+    "mkdocs_extrafiles",
+    "*/site-packages/mkdocs_extrafiles",
 ]
 
 [tool.coverage.report]

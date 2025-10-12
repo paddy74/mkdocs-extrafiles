@@ -19,7 +19,7 @@ jobs:
         with:
           filters: |
             test:
-              - 'usajobsapi/**'
+              - 'mkdocs_extrafiles/**'
               - 'tests/**'
               - 'pyproject.toml'
               - '.github/workflows/ci.yaml'
@@ -48,7 +48,7 @@ jobs:
 
       - uses: ./.github/actions/python-init
       - name: Run tests
-        run: uv run pytest --cov=usajobsapi --cov-report=term-missing --cov-report=xml --junitxml=junit.xml tests
+        run: uv run pytest --cov=mkdocs_extrafiles --cov-report=term-missing --cov-report=xml --junitxml=junit.xml tests
       - uses: ./.github/actions/python-post
 
       - name: Warn if CODECOV_TOKEN is missing

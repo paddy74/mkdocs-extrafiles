@@ -1,4 +1,4 @@
-"""Top-level package for the MkDocs External Files plugin."""
+"""Top-level package for the MkDocs Extra Files plugin."""
 
 from mkdocs_extrafiles._version import (
     __author__,
