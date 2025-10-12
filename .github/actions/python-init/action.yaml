@@ -1,0 +1,18 @@
+name: python-init
+description: "Initialize a job for Python with uv"
+runs:
+  using: composite
+  steps:
+    - name: Install Python
+      uses: actions/setup-python@v5
+      with:
+        python-version-file: "pyproject.toml"
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v6
+      with:
+        enable-cache: true
+
+    - name: Install the project
+      run: uv sync --locked --all-extras --all-groups
+      shell: bash

@@ -1,0 +1,38 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: check-yaml
+      - id: detect-private-key
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+      - id: trailing-whitespace
+
+  - repo: https://gitlab.com/bmares/check-json5
+    rev: v1.0.0
+    hooks:
+      - id: check-json5
+
+  # Handle undesirable unicode characters
+  - repo: https://github.com/sirosen/texthooks
+    rev: "0.7.1"
+    hooks:
+      - id: alphabetize-codeowners
+      - id: fix-smartquotes
+      - id: fix-spaces
+      - id: fix-ligatures
+      - id: forbid-bidi-controls
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.13.1
+    hooks:
+      - id: ruff-check
+        name: ruff-check (local)
+        stages: [pre-commit, pre-push]
+      - id: ruff-check
+        name: ruff-check (ci)
+        stages: [manual]
+        args: [--output-format=github]
+      - id: ruff-format

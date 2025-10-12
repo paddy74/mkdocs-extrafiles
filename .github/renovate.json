@@ -1,0 +1,52 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+
+  "extends": [
+    "mergeConfidence:all-badges",
+    "config:recommended",
+    ":semanticCommits",
+    ":semanticCommitTypeAll(chore)",
+    ":semanticCommitScope(deps)",
+    ":separateMultipleMajorReleases",
+    ":enablePreCommit"
+  ],
+
+  "dependencyDashboard": true,
+  "schedule": ["* 1-4 * * 2"],
+
+  "prHourlyLimit": 4,
+  "prConcurrentLimit": 4,
+
+  "rangeStrategy": "replace",
+  "rebaseWhen": "behind-base-branch",
+  "minimumReleaseAge": "3 days",
+
+  "lockFileMaintenance": {
+    "enabled": true
+  },
+
+  "packageRules": [
+    {
+      "matchDepTypes": ["dev"],
+      "groupName": "dev-dependencies",
+      "groupSlug": "dev-deps"
+    },
+    {
+      "matchManagers": ["pep621"],
+      "matchDepTypes": ["dependencies"],
+      "semanticCommitType": "build"
+    },
+    {
+      "matchManagers": ["pep621"],
+      "postUpgradeTasks": {
+        "commands": [
+          "python -m pip install --upgrade pip",
+          "python -m pip install uv",
+          "uv lock"
+        ],
+        "fileFilters": ["pyproject.toml", "uv.lock"],
+        "executionMode": "update"
+      }
+    }
+  ]
+}

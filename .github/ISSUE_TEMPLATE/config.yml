@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: mkdocs-extrafiles Community Support
+    url: https://github.com/paddy74/mkdocs-extrafiles/discussions
+    about: Please ask and answer questions here.

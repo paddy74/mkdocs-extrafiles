@@ -1,0 +1,8 @@
+name: python-post
+description: "Clean-up a job that uses 'python-init'"
+runs:
+  using: composite
+  steps:
+    - name: Minimize uv cache
+      run: uv cache prune --ci
+      shell: bash

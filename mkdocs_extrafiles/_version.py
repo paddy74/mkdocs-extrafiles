@@ -1,0 +1,6 @@
+__author__ = "Patrick Young"
+__copyright__ = "2025, Patrick Young"
+__email__ = "patrick@youngweb.site"
+__license__ = "GPL3"
+__title__ = "mkdocs-extrafiles"
+__version__ = "0.0.4"

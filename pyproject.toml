@@ -1,0 +1,40 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "mkdocs-extrafiles"
+description = "A plugin for MkDocs plugin that allows you to add files from outside your `docs_dir`."
+readme = "README.md"
+requires-python = ">=3.9"
+keywords = ["mkdocs", "mkdocs-plugin"]
+license = {file = "LICENSE"}
+dependencies = ["mkdocs>=1.6.1"]
+dynamic = ["version"]
+
+[project.optional-dependencies]
+build = ["uv ~= 0.8.17"]
+
+[project.urls]
+Homepage = "https://paddy74.github.io/mkdocs-extrafiles/"
+Changelog = "https://paddy74.github.io/mkdocs-extrafiles/about/changelog/"
+Documentation = "https://paddy74.github.io/mkdocs-extrafiles/"
+Source = "https://github.com/paddy74/mkdocs-extrafiles/"
+
+[tool.hatch.version]
+path = "mkdocs_extrafiles/_version.py"
+[tool.hatch.build.targets.wheel]
+packages = ["mkdocs_externalfiels"]
+
+[project.entry-points."mkdocs.plugins"]
+external-files = "mkdocs_extrafiles:extrafilesPlugin"
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.3.0",
+    "ruff>=0.12.11",
+]
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
