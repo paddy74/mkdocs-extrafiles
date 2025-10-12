@@ -61,15 +61,15 @@ class ExtraFilesPlugin(BasePlugin[PluginConfig]):
             logger.debug("extrafiles: plugin disabled, skipping.")
             return config
 
-        docs_dir = Path(config["docs_dir"]).resolve()
-
         config_path = getattr(config, "config_file_path", None)
         if config_path:
             self.config_dir = Path(config_path).resolve().parent
         else:
             self.config_dir = Path.cwd()
 
-        logger.debug("extrafiles: docs_dir=%s config_dir=%s", docs_dir, self.config_dir)
+        logger.debug(
+            f"extrafiles: docs_dir={Path(config['docs_dir']).resolve()} config_dir={self.config_dir}"
+        )
 
         return config
 
@@ -171,13 +171,13 @@ class ExtraFilesPlugin(BasePlugin[PluginConfig]):
         for item in self.config["files"]:
             src = item["src"]
 
-            candidate = Path(src)
+            p = Path(src)
             if any(ch in src for ch in _GLOB_CHARS):
                 watch_paths.add(self._glob_base_dir(src))
             else:
-                if not candidate.is_absolute():
-                    candidate = self.config_dir / candidate
-                watch_paths.add(candidate.resolve())
+                if not p.is_absolute():
+                    p = self.config_dir / p
+                watch_paths.add(p.resolve())
 
         return watch_paths
 
@@ -233,24 +233,35 @@ class ExtraFilesPlugin(BasePlugin[PluginConfig]):
             )
             return server
 
-        try:
-            watched: set[Path] = set()
+        watched: set[Path] = set()
 
-            for candidate in self._iter_watch_paths():
-                watch_path = self._nearest_existing_path(candidate)
-                if watch_path is None:
-                    continue
-                if watch_path not in watched:
+        for p in self._iter_watch_paths():
+            watch_path = self._nearest_existing_path(p)
+
+            if watch_path is None:
+                continue
+            if watch_path not in watched:
+                try:
                     server.watch(str(watch_path))
                     watched.add(watch_path)
+                except Exception:
+                    logger.exception("extrafiles: failed to watch %s", watch_path)
 
+        try:
             for src, _ in self._expand_items():
-                if src.exists():
-                    resolved = src.resolve()
-                    if resolved not in watched:
-                        server.watch(str(resolved))
-                        watched.add(resolved)
+                if not src.exists():
+                    continue
+
+                resolved = src.resolve()
+                if resolved in watched:
+                    continue
+
+                try:
+                    server.watch(str(resolved))
+                    watched.add(resolved)
+                except Exception:
+                    logger.exception("extrafiles: failed to watch %s", resolved)
         except Exception:
-            pass
+            logger.exception("extrafiles: failed while expanding items for watch")
 
         return server
