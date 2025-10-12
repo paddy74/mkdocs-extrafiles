@@ -46,7 +46,7 @@ Enable the plugin and list the external sources inside `mkdocs.yml`:
 ```yaml
 plugins:
   - search
-  - external-files:
+  - extrafiles:
       files:
         - src: ../README.md
           dest: extras/README.md

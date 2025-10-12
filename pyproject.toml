@@ -27,7 +27,7 @@ path = "mkdocs_extrafiles/_version.py"
 packages = ["mkdocs_externalfiels"]
 
 [project.entry-points."mkdocs.plugins"]
-external-files = "mkdocs_extrafiles:extrafilesPlugin"
+extrafiles = "mkdocs_extrafiles:ExtraFilesPlugin"
 
 [dependency-groups]
 dev = [
