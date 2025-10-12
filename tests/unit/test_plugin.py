@@ -72,7 +72,11 @@ def test_plugin_enabled_property(tmp_path: Path) -> None:
 
 def test_expand_items_returns_nothing_when_disabled(tmp_path: Path) -> None:
     """Disabled plugin must not yield items."""
-    plugin = make_plugin(tmp_path, files=[{"src": "notes.txt", "dest": "external/notes.txt"}], enabled=False)
+    plugin = make_plugin(
+        tmp_path,
+        files=[{"src": "notes.txt", "dest": "external/notes.txt"}],
+        enabled=False,
+    )
     assert list(plugin._expand_items() or []) == []
 
 
