@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.0.1 (2025-11-05)
+
+### Bug Fixes
+
+- **ci**: Disable renovate postUpgradeTasks
+  ([`6da5a51`](https://github.com/paddy74/mkdocs-extrafiles/commit/6da5a51d952a6d73f7e5a581038fb077512fcce1))
+
+
 ## v1.0.0 (2025-10-12)
 
 ### Build System
