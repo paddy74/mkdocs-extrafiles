@@ -35,7 +35,8 @@
       "matchManagers": ["pep621"],
       "matchDepTypes": ["dependencies"],
       "semanticCommitType": "build"
-    },
+    } /* ,
+    // postUpgradeTasks is only supported in self-hosted Renovate
     {
       "matchManagers": ["pep621"],
       "postUpgradeTasks": {
@@ -47,6 +48,6 @@
         "fileFilters": ["pyproject.toml", "uv.lock"],
         "executionMode": "update"
       }
-    }
+    } */
   ]
 }
