@@ -31,8 +31,8 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/python-init
-      - name: Run pre-commit
-        run: uv run pre-commit run --all-files --hook-stage manual
+      - name: Run commit hooks
+        run: uv run prek run --all-files --hook-stage manual
       - uses: ./.github/actions/python-post
 
   test:

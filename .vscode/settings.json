@@ -1,0 +1,42 @@
+{
+  // Python
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff"
+  },
+
+  // disable pylance's type checking and only use its language server
+  "python.analysis.typeCheckingMode": "off",
+  "python.languageServer": "Pylance",
+
+  // disable basedpyright's language server and only use its type checking
+  "basedpyright.disableLanguageServices": true,
+
+  "python.defaultInterpreterPath": "python",
+  "python.analysis.inlayHints.variableTypes": true,
+  "python.analysis.inlayHints.functionReturnTypes": true,
+  "python.analysis.extraPaths": ["mkdocs_extrafiles"], // src
+
+  "autoDocstring.docstringFormat": "sphinx", // PEP287, reStructuredText (reST)
+
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/*.pyc": true
+  },
+  "search.exclude": {
+    "**/.venv": true
+  },
+
+  // code-spell-checker
+  "cSpell.diagnosticLevel": "Hint",
+  "cSpell.ignorePaths": [".vscode"],
+  "cSpell.words": [
+    "prek",
+    "mkdocs",
+    "mkdocstrings",
+    "pyproject",
+    "mkdocs_extrafiles",
+    "docstrings",
+    "basedpyright",
+    "baselevel"
+  ]
+}

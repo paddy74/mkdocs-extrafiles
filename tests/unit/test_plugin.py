@@ -1,10 +1,11 @@
 """Unit tests exercising the ExtraFilesPlugin behaviors."""
+# pyright: reportAttributeAccessIssue=false
+# pyright: reportArgumentType=false
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from pathlib import Path
-from typing import Iterable
 
 import pytest
 from mkdocs.structure.files import File, Files

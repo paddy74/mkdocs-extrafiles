@@ -1,4 +1,4 @@
-from mkdocs.config.defaults import MkDocsConfig
+from mkdocs.config.defaults import MkDocsConfig  # pyright: ignore[reportMissingImports]
 
 from mkdocs_extrafiles import _version as md
 

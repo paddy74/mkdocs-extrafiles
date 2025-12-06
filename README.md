@@ -85,11 +85,18 @@ plugins:
 
 ## Developer Guide
 
+- **Package Manager**: [`uv`](https://docs.astral.sh/uv/)
+- **Language Server**: [Pylance](https://marketplace.visualstudio.com/items?itemName=ms-python.vscode-pylance)
+- **Static Type Checker**: [`basedpyright`](https://github.com/detachhead/basedpyright)
+- **Linter**: [Ruff Linter](https://docs.astral.sh/ruff/linter/)
+- **Code Formatter**: [Ruff Formatter](https://docs.astral.sh/ruff/formatter/)
+
 Set up a development environment with [`uv`](https://docs.astral.sh/uv/):
 
 ```bash
 uv sync --all-extras --all-groups
 uv run pytest tests
+
 uv run ruff check
 uv run ruff format
 ```
