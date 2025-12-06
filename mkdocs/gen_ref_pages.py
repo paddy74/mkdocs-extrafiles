@@ -4,6 +4,7 @@ import logging
 from pathlib import Path, PurePosixPath
 
 import mkdocs_gen_files
+from mkdocs_gen_files.nav import Nav as MkdocsNav
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +36,7 @@ def gen_ref_pages(root_dir: Path, source_dir: Path, output_dir: str | Path) -> N
     if not py_files:
         raise ValueError(f"no Python modules found under {source_dir}")
 
-    nav = mkdocs_gen_files.Nav()
+    nav = MkdocsNav()
 
     for path in py_files:
         module_path = path.relative_to(source_dir).with_suffix("")

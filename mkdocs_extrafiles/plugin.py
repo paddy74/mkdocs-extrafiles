@@ -1,7 +1,8 @@
 import logging
+from collections.abc import Callable, Iterator
 from glob import glob
 from pathlib import Path, PurePosixPath
-from typing import Any, Callable
+from typing import Any
 
 from mkdocs.config import Config
 from mkdocs.config import config_options as opt
@@ -106,59 +107,65 @@ class ExtraFilesPlugin(BasePlugin[PluginConfig]):
         base_path = self.config_dir.joinpath(*base_parts)
         return base_path.resolve()
 
+    def _assert_dest_relative(self, dest: str) -> None:
+        if Path(dest).is_absolute():
+            raise ValueError(f"extrafiles: dest must be relative, got {dest!r}")
+
+    def _expand_item_file(self, src: str, dest: str) -> Iterator[tuple[Path, str]]:
+        config_dir = self.config_dir
+        p = Path(src)
+        s = (config_dir / p).resolve() if not p.is_absolute() else p.resolve()
+        dest_uri = PurePosixPath(dest.replace("\\", "/")).as_posix()
+        yield s, dest_uri
+
+    def _expand_item_glob(self, src: str, dest: str) -> Iterator[tuple[Path, str]]:
+        if not dest.endswith(("/", "\\")):
+            raise ValueError(
+                f"When using glob in src='{src}', dest must be a directory (end with '/')."
+            )
+
+        config_dir = self.config_dir
+        pattern_path = Path(src)
+        pattern = (
+            str(pattern_path)
+            if pattern_path.is_absolute()
+            else str((config_dir / pattern_path).resolve())
+        )
+
+        dest_root = PurePosixPath(dest.rstrip("/\\"))
+        base_dir = self._glob_base_dir(src)
+
+        for match in glob(pattern, recursive=True):
+            s = Path(match).resolve()
+            if not s.is_file():
+                continue
+            try:
+                rel_path = s.relative_to(base_dir)
+            except ValueError:
+                rel_path = Path(s.name)
+            if rel_path == Path("."):
+                rel_path = Path(s.name)
+            relative_posix = PurePosixPath(*rel_path.parts)
+            yield s, (dest_root / relative_posix).as_posix()
+
     def _expand_items(self):
         """
         Yields (src_path, dest_uri) pairs. Supports:
-          - single file -> file
-          - glob -> directory (dest must end with '/')
+        - single file -> file
+        - glob -> directory (dest must end with '/')
         """
         if not self.plugin_enabled:
             logger.debug("extrafiles: plugin disabled, skipping item expansion.")
             return
 
-        config_dir = self.config_dir
-
         for item in self.config["files"]:
             src = item["src"]
             dest = item["dest"]
-
-            if Path(dest).is_absolute():
-                raise ValueError(f"extrafiles: dest must be relative, got {dest!r}")
-
+            self._assert_dest_relative(dest)
             if any(ch in src for ch in _GLOB_CHARS):
-                # glob mode: dest must be a directory (end with '/')
-                if not dest.endswith(("/", "\\")):
-                    raise ValueError(
-                        f"When using glob in src='{src}', dest must be a directory (end with '/')."
-                    )
-
-                pattern_path = Path(src)
-                if pattern_path.is_absolute():
-                    pattern = str(pattern_path)
-                else:
-                    pattern = str((config_dir / pattern_path).resolve())
-
-                dest_root = PurePosixPath(dest.rstrip("/\\"))
-                base_dir = self._glob_base_dir(src)
-                for match in glob(pattern, recursive=True):
-                    s = Path(match).resolve()
-                    if s.is_file():
-                        try:
-                            rel_path = s.relative_to(base_dir)
-                        except ValueError:
-                            rel_path = Path(s.name)
-                        if rel_path == Path("."):
-                            rel_path = Path(s.name)
-                        relative_posix = PurePosixPath(*rel_path.parts)
-                        dest_uri = dest_root / relative_posix
-                        yield s, dest_uri.as_posix()
+                yield from self._expand_item_glob(src, dest)
             else:
-                s = Path(src)
-                if not s.is_absolute():
-                    s = config_dir / s
-                s = s.resolve()
-                dest_uri = PurePosixPath(dest.replace("\\", "/")).as_posix()
-                yield s, dest_uri
+                yield from self._expand_item_file(src, dest)
 
     def _iter_watch_paths(self) -> set[Path]:
         """
@@ -235,32 +242,24 @@ class ExtraFilesPlugin(BasePlugin[PluginConfig]):
 
         watched: set[Path] = set()
 
+        def _watch_path(path: Path | None) -> None:
+            if path is None or path in watched:
+                return
+            try:
+                server.watch(str(path))
+                watched.add(path)
+            except Exception:
+                logger.exception("extrafiles: failed to watch %s", path)
+
+        # Register the nearest existing paths from configured watch paths
         for p in self._iter_watch_paths():
-            watch_path = self._nearest_existing_path(p)
+            _watch_path(self._nearest_existing_path(p))
 
-            if watch_path is None:
-                continue
-            if watch_path not in watched:
-                try:
-                    server.watch(str(watch_path))
-                    watched.add(watch_path)
-                except Exception:
-                    logger.exception("extrafiles: failed to watch %s", watch_path)
-
+        # Register expanded item sources, guarding expansion errors
         try:
             for src, _ in self._expand_items():
-                if not src.exists():
-                    continue
-
-                resolved = src.resolve()
-                if resolved in watched:
-                    continue
-
-                try:
-                    server.watch(str(resolved))
-                    watched.add(resolved)
-                except Exception:
-                    logger.exception("extrafiles: failed to watch %s", resolved)
+                if src.exists():
+                    _watch_path(src.resolve())
         except Exception:
             logger.exception("extrafiles: failed while expanding items for watch")
 
